@@ -5,6 +5,7 @@
 //! surfaces that envelope as [`MessageBody::Encrypted`] and **never** fabricates
 //! plaintext. Decryption (given the derived key) lives in [`crate::crypto`].
 
+use crate::media::MediaMeta;
 use crate::schema;
 use crate::value::{bytes_field, field, int_field, str_field};
 use chromium_storage_indexeddb::{IndexedDbRecord, RecordValue, V8Value};
@@ -52,6 +53,8 @@ pub struct Message {
     pub notify_name: Option<String>,
     /// The on-disk body (encrypted or absent).
     pub body: MessageBody,
+    /// Media reference, on media-type messages.
+    pub media: Option<MediaMeta>,
     /// `true` if this message was recovered from a deletion tombstone.
     pub deleted: bool,
     /// LevelDB sequence number of the source record.
@@ -86,6 +89,7 @@ impl Message {
             ack: int_field(v, schema::F_ACK),
             notify_name: str_field(v, schema::F_NOTIFY_NAME),
             body: decode_body(v),
+            media: MediaMeta::from_v8(v),
             deleted,
             seq,
         }

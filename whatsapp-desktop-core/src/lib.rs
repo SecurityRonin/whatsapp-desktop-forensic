@@ -23,6 +23,7 @@
 #![forbid(unsafe_code)]
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used))]
 
+mod media;
 mod message;
 pub mod schema;
 mod value;
@@ -30,4 +31,5 @@ mod value;
 pub use chromium_storage_indexeddb::{
     decode_records, read_dir, IdbKey, IndexedDbRecord, RecordValue, V8Value,
 };
+pub use media::MediaMeta;
 pub use message::{EncryptedBody, Message, MessageBody};
