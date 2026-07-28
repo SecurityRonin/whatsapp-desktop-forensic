@@ -25,6 +25,8 @@
 
 mod chat;
 mod contact;
+mod crypto;
+mod error;
 mod media;
 mod message;
 pub mod schema;
@@ -36,6 +38,8 @@ pub use chromium_storage_indexeddb::{
     decode_records, read_dir, IdbKey, IndexedDbRecord, RecordValue, V8Value,
 };
 pub use contact::Contact;
+pub use crypto::decrypt_body;
+pub use error::WaError;
 pub use media::MediaMeta;
 pub use message::{EncryptedBody, Message, MessageBody};
 pub use timeline::{epoch_secs_to_rfc3339, TimelineEntry};
