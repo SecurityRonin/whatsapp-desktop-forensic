@@ -1,0 +1,25 @@
+[package]
+name = "whatsapp-desktop-forensic"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+# Inherits the V8/Blink decode floor from whatsapp-desktop-core.
+rust-version = "1.88"
+readme = "README.md"
+description = "WhatsApp Desktop (Electron) analyzer — audits the IndexedDB-over-LevelDB `model-storage` for encrypted message bodies, recovered deleted-message tombstones, and media references, emitting normalized forensicnomicon findings. Panic-free, fuzzed."
+
+[lib]
+name = "whatsapp_desktop_forensic"
+path = "src/lib.rs"
+
+[dependencies]
+whatsapp-desktop-core = { path = "../whatsapp-desktop-core" }
+forensicnomicon-core = { workspace = true }
+
+[dev-dependencies]
+hex-literal = { workspace = true }
+
+[lints]
+workspace = true

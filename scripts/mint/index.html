@@ -1,0 +1,115 @@
+<!doctype html>
+<!--
+  WhatsApp Web IndexedDB store minter.
+
+  Writes a real Chromium IndexedDB `model-storage` database in WhatsApp Web's
+  DOCUMENTED schema (object stores `message`, `chat`, `contact`; keyPath `id`),
+  so the copied LevelDB directory is genuine Chrome/V8-authored output — a tier-2
+  oracle for the whatsapp-desktop parser (see docs/validation.md).
+
+  Schema grounded in:
+   - F. Mazzoli, "Backing up WhatsApp data through the multi-device web client"
+     https://mazzo.li/posts/whatsapp-backup.html
+   - Paligo et al., "Browser Forensic Investigations of WhatsApp Web Utilizing
+     IndexedDB Persistent Storage", Future Internet 12(11):184, MDPI, 2020
+     https://www.mdpi.com/1999-5903/12/11/184
+
+  The `message` text body is NOT plaintext: WhatsApp Web AES-CBC-encrypts it into
+  `msgRowOpaqueData:{_keyId, iv:ArrayBuffer, _data:ArrayBuffer}`. We write a real
+  encrypted-shaped blob so the parser's fail-loud "encrypted body" path is
+  exercised against genuine V8-serialized ArrayBuffers.
+-->
+<meta charset="utf-8" />
+<title>MINT-PENDING</title>
+<script>
+  function buf(bytes) {
+    return new Uint8Array(bytes).buffer;
+  }
+
+  const req = indexedDB.open("model-storage", 1);
+  req.onupgradeneeded = (e) => {
+    const db = e.target.result;
+    db.createObjectStore("message", { keyPath: "id" });
+    db.createObjectStore("chat", { keyPath: "id" });
+    db.createObjectStore("contact", { keyPath: "id" });
+  };
+  req.onsuccess = (e) => {
+    const db = e.target.result;
+    const tx = db.transaction(["message", "chat", "contact"], "readwrite");
+    const msg = tx.objectStore("message");
+    const chat = tx.objectStore("chat");
+    const contact = tx.objectStore("contact");
+
+    // 1. Text message — body encrypted inside msgRowOpaqueData (AES-CBC).
+    msg.put({
+      id: "false_15551239999@c.us_3EB0A1B2C3D4E5F6",
+      t: 1596233451, // 2020-07-31T22:10:51Z
+      from: "15551230000@c.us",
+      to: "15551239999@c.us",
+      type: "chat",
+      ack: 3,
+      notifyName: "Alice",
+      msgRowOpaqueData: {
+        _keyId: "1",
+        iv: buf([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]),
+        _data: buf([
+          200, 17, 42, 99, 5, 250, 130, 7, 61, 200, 17, 42, 99, 5, 250, 130,
+          7, 61, 200, 17, 42, 99, 5, 250, 130, 7, 61, 88, 44, 22, 11, 3,
+        ]),
+      },
+    });
+
+    // 2. Media message (image) — metadata plaintext, payload out-of-band.
+    msg.put({
+      id: "true_15551239999@c.us_ABCDEF0123456789",
+      t: 1596233500, // 2020-07-31T22:11:40Z
+      from: "15551239999@c.us",
+      to: "15551230000@c.us",
+      type: "image",
+      ack: 2,
+      mimetype: "image/jpeg",
+      filehash: "n3v9J0k2Q1r4S5t6U7v8W9x0Y1z2A3b4C5d6E7f8=",
+      mediaKey: "aGVsbG8td29ybGQtbWVkaWEta2V5LWJhc2U2NC0xMjM0NTY=",
+      directPath: "/v/t62.7118-24/12345678_9012345_67890.enc",
+      size: 34567,
+      width: 1280,
+      height: 720,
+    });
+
+    // 3. A message that is then deleted — leaves a LevelDB tombstone so the
+    //    parser's deleted-record recovery path has real residue to surface.
+    msg.put({
+      id: "false_15551239999@c.us_DELETEDMSG000001",
+      t: 1596233333,
+      from: "15551230000@c.us",
+      to: "15551239999@c.us",
+      type: "chat",
+    });
+    msg.delete("false_15551239999@c.us_DELETEDMSG000001");
+
+    chat.put({
+      id: "15551239999@c.us",
+      name: "Alice",
+      t: 1596233500,
+      unreadCount: 2,
+    });
+
+    contact.put({
+      id: "15551239999@c.us",
+      name: "Alice Example",
+      pushname: "Alice",
+      notifyName: "Alice",
+      shortName: "Alice",
+    });
+
+    tx.oncomplete = () => {
+      document.title = "MINT-DONE";
+    };
+    tx.onerror = (ev) => {
+      document.title = "MINT-ERROR: " + ev.target.error;
+    };
+  };
+  req.onerror = (e) => {
+    document.title = "MINT-OPEN-ERROR: " + e.target.error;
+  };
+</script>

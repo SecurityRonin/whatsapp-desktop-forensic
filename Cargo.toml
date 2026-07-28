@@ -1,0 +1,69 @@
+[workspace]
+resolver = "2"
+members = [
+    "whatsapp-desktop-core",
+    "whatsapp-desktop-forensic",
+]
+
+# Single source of truth for fields shared by every member (DRY): bump version /
+# edition / license here once; members inherit via `field.workspace = true`.
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+repository = "https://github.com/SecurityRonin/whatsapp-desktop-forensic"
+authors = ["Albert Hui <albert@securityronin.com>"]
+
+[workspace.dependencies]
+# Fleet crates: `version + path` so the local checkout builds while the semver
+# requirement is honest (no wildcard) and consumers get the registry version once
+# each is published. Switch to registry-only once all are on crates.io.
+#
+# KNOWLEDGE leaf — the messenger-desktop artifact specs + Chromium key-coding /
+# V8-tag constants. REUSE these; never re-hardcode a path template or tag byte.
+forensicnomicon-core = { version = "1", path = "../../knowledge/forensicnomicon/crates/core" }
+# The Chromium IndexedDB-over-LevelDB reader (walks the key coding, decodes each
+# object-store record's Blink-wrapped V8 value). This crate parses ON TOP of it.
+chromium-storage-indexeddb = { version = "0.1", path = "../chromium-storage-forensic/chromium-storage-indexeddb" }
+# Raw, read-only LevelDB record reader (surfaces tombstones + sequence numbers).
+leveldb-core = { version = "0.1", path = "../leveldb-forensic/leveldb-core" }
+# V8 / Blink structured-clone value type + deserializer (test-side decode of real
+# `v8.serialize()` bytes; the record value type is re-exported through the reader).
+blob-decoder = { version = "0.1", path = "../../utility/blob-decoder", default-features = false }
+# Panic-free bounded integer readers over untrusted bytes (the shared front door).
+safe-read = { version = "0.2", path = "../../utility/safe-read" }
+# Faithful, round-trippable machine output (JSON/JSONL) for the record types.
+serde = { version = "1", features = ["derive"] }
+# Typed, fail-loud errors (never a swallowed default).
+thiserror = "2"
+# RustCrypto AES-CBC for the WhatsApp Web message-body decryption primitive — an
+# audited implementation, KAT-validated; a wrong/missing key fails loud (PKCS7
+# padding error), never fabricates plaintext. NEVER hand-roll or placeholder.
+aes = "0.8"
+cbc = { version = "0.1", features = ["alloc"] }
+# Test-only: mint scratch dirs and carry KAT vectors as byte literals.
+tempfile = "3"
+hex-literal = "0.4"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all                      = { level = "warn", priority = -1 }
+pedantic                 = { level = "warn", priority = -1 }
+correctness              = { level = "deny", priority = -1 }
+suspicious               = { level = "deny", priority = -1 }
+unwrap_used              = { level = "deny", priority = 0 }
+expect_used              = { level = "deny", priority = 0 }
+module_name_repetitions  = { level = "allow", priority = 1 }
+must_use_candidate       = { level = "allow", priority = 1 }
+missing_errors_doc        = { level = "allow", priority = 1 }
+missing_panics_doc        = { level = "allow", priority = 1 }
+cast_possible_truncation = { level = "allow", priority = 1 }
+cast_possible_wrap       = { level = "allow", priority = 1 }
+cast_sign_loss           = { level = "allow", priority = 1 }
+cast_precision_loss      = { level = "allow", priority = 1 }
+too_many_lines           = { level = "allow", priority = 1 }
+items_after_statements   = { level = "allow", priority = 1 }
+similar_names            = { level = "allow", priority = 1 }
+manual_let_else          = { level = "allow", priority = 1 }

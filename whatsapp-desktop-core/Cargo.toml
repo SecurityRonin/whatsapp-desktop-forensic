@@ -1,0 +1,33 @@
+[package]
+name = "whatsapp-desktop-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+# The V8/Blink value decoder (via chromium-storage-indexeddb → blob-decoder)
+# pulls MSRV up to 1.88; the analysis layer takes the capability bump
+# (batteries-included) rather than gate it out.
+rust-version = "1.88"
+readme = "README.md"
+description = "WhatsApp Desktop (Electron) reader — interprets the Chromium IndexedDB-over-LevelDB store's decoded V8 values into typed chats, messages, contacts, and media metadata, plus a merged timeline. Panic-free, fuzzed; encrypted blobs are flagged, never fabricated."
+
+[lib]
+name = "whatsapp_desktop_core"
+path = "src/lib.rs"
+
+[dependencies]
+forensicnomicon-core = { workspace = true }
+chromium-storage-indexeddb = { workspace = true }
+leveldb-core = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+aes = { workspace = true }
+cbc = { workspace = true }
+
+[dev-dependencies]
+blob-decoder = { workspace = true }
+hex-literal = { workspace = true }
+
+[lints]
+workspace = true
