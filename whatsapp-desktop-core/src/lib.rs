@@ -28,6 +28,7 @@ mod contact;
 mod media;
 mod message;
 pub mod schema;
+mod timeline;
 mod value;
 
 pub use chat::Chat;
@@ -37,3 +38,4 @@ pub use chromium_storage_indexeddb::{
 pub use contact::Contact;
 pub use media::MediaMeta;
 pub use message::{EncryptedBody, Message, MessageBody};
+pub use timeline::{epoch_secs_to_rfc3339, TimelineEntry};

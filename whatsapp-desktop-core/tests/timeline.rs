@@ -1,24 +1,27 @@
-//! Merged message timeline over the tier-2 minted store, plus an epoch→RFC3339
+//! `build_timeline` ordering contract (deterministic inputs) + an epoch→RFC3339
 //! Known-Answer-Test (independent oracle: Python `datetime`, UTC).
+//!
+//! The end-to-end timeline over the real minted store (deduplicated, with
+//! deleted-message recovery) is asserted in `tests/store.rs`; here we pin the
+//! pure ordering/rendering function.
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use std::path::PathBuf;
-use whatsapp_desktop_core::{epoch_secs_to_rfc3339, read_dir, Message, TimelineEntry};
+use whatsapp_desktop_core::{epoch_secs_to_rfc3339, Message, MessageBody, TimelineEntry};
 
-fn data_dir() -> PathBuf {
-    PathBuf::from(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/../tests/data/indexeddb/http_127.0.0.1_8731.indexeddb.leveldb"
-    ))
-}
-
-fn live_messages() -> Vec<Message> {
-    read_dir(&data_dir())
-        .unwrap()
-        .iter()
-        .filter(|r| r.object_store.as_deref() == Some("message") && !r.deleted)
-        .filter_map(Message::from_record)
-        .collect()
+fn msg(id: &str, t: Option<i64>, kind: &str) -> Message {
+    Message {
+        id: id.to_string(),
+        timestamp_secs: t,
+        from: None,
+        to: None,
+        kind: Some(kind.to_string()),
+        ack: None,
+        notify_name: None,
+        body: MessageBody::None,
+        media: None,
+        deleted: false,
+        seq: 0,
+    }
 }
 
 #[test]
@@ -33,17 +36,17 @@ fn epoch_to_rfc3339_matches_independent_oracle() {
 }
 
 #[test]
-fn timeline_is_time_ordered_with_rendered_timestamps() {
-    let tl: Vec<TimelineEntry> = TimelineEntry::build_timeline(&live_messages());
-    // Two live, dated messages (text @ 22:10:51, image @ 22:11:40).
-    assert_eq!(tl.len(), 2);
-    assert!(
-        tl[0].timestamp_secs <= tl[1].timestamp_secs,
-        "timeline must be ascending by time"
-    );
-    assert_eq!(tl[0].timestamp_secs, 1_596_233_451);
+fn timeline_sorts_ascending_and_renders_time() {
+    let messages = vec![
+        msg("later", Some(1_596_233_500), "image"),
+        msg("earlier", Some(1_596_233_451), "chat"),
+        msg("undated", None, "chat"), // omitted — no time to place it
+    ];
+    let tl: Vec<TimelineEntry> = TimelineEntry::build_timeline(&messages);
+    assert_eq!(tl.len(), 2, "undated message is omitted");
+    assert_eq!(tl[0].message_id, "earlier");
     assert_eq!(tl[0].rfc3339, "2020-07-31T22:10:51Z");
-    assert!(tl[0].message_id.ends_with("3EB0A1B2C3D4E5F6"));
-    assert_eq!(tl[1].rfc3339, "2020-07-31T22:11:40Z");
+    assert_eq!(tl[1].message_id, "later");
     assert_eq!(tl[1].kind.as_deref(), Some("image"));
+    assert!(tl[0].timestamp_secs < tl[1].timestamp_secs);
 }
