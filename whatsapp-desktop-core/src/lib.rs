@@ -24,6 +24,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used))]
 
 mod chat;
+mod contact;
 mod media;
 mod message;
 pub mod schema;
@@ -33,5 +34,6 @@ pub use chat::Chat;
 pub use chromium_storage_indexeddb::{
     decode_records, read_dir, IdbKey, IndexedDbRecord, RecordValue, V8Value,
 };
+pub use contact::Contact;
 pub use media::MediaMeta;
 pub use message::{EncryptedBody, Message, MessageBody};
