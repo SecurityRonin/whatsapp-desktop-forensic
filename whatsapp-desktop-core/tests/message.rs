@@ -48,7 +48,7 @@ fn text_body_is_surfaced_as_encrypted_never_fabricated() {
             assert_eq!(b.ciphertext.len(), 32, "opaque _data ciphertext");
             assert_eq!(b.iv[..4], [0, 1, 2, 3]);
         }
-        other => panic!("expected an encrypted body, got {other:?}"),
+        MessageBody::None => panic!("expected an encrypted body, got MessageBody::None"),
     }
 }
 
