@@ -15,7 +15,8 @@ name = "whatsapp_desktop_forensic"
 path = "src/lib.rs"
 
 [dependencies]
-whatsapp-desktop-core = { path = "../whatsapp-desktop-core" }
+# version + path: honest semver requirement for crates.io, local checkout builds now.
+whatsapp-desktop-core = { version = "0.1", path = "../whatsapp-desktop-core" }
 forensicnomicon-core = { workspace = true }
 
 [dev-dependencies]
