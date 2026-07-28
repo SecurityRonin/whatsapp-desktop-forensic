@@ -3,7 +3,7 @@
 //! A message's metadata (`id`, `t`, `from`, `to`, `type`, …) is plaintext, but
 //! the **text body is AES-CBC-encrypted** inside `msgRowOpaqueData` — this reader
 //! surfaces that envelope as [`MessageBody::Encrypted`] and **never** fabricates
-//! plaintext. Decryption (given the derived key) lives in [`crate::crypto`].
+//! plaintext. Decryption (given the derived key) lives in [`crate::decrypt_body`].
 
 use crate::media::MediaMeta;
 use crate::schema;
@@ -12,7 +12,7 @@ use chromium_storage_indexeddb::{IndexedDbRecord, RecordValue, V8Value};
 use serde::Serialize;
 
 /// The AES-CBC-encrypted body envelope (`msgRowOpaqueData`). The ciphertext is
-/// carried verbatim; it is decrypted only on request via [`crate::crypto`].
+/// carried verbatim; it is decrypted only on request via [`crate::decrypt_body`].
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub struct EncryptedBody {
     /// `_keyId` — identifies the derived key that decrypts this body.
@@ -27,7 +27,7 @@ pub struct EncryptedBody {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub enum MessageBody {
     /// An encrypted `msgRowOpaqueData` envelope (the normal case for text). The
-    /// analyst must supply the derived key to read it; see [`crate::crypto`].
+    /// analyst must supply the derived key to read it; see [`crate::decrypt_body`].
     Encrypted(EncryptedBody),
     /// No body field on this record (media/system messages, or schema drift).
     /// The absence is reported as-is, never filled with invented text.
