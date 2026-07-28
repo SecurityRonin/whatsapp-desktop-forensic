@@ -30,6 +30,7 @@ mod error;
 mod media;
 mod message;
 pub mod schema;
+mod store;
 mod timeline;
 mod value;
 
@@ -42,4 +43,5 @@ pub use crypto::decrypt_body;
 pub use error::WaError;
 pub use media::MediaMeta;
 pub use message::{EncryptedBody, Message, MessageBody};
+pub use store::{open, parse_records, WhatsAppStore};
 pub use timeline::{epoch_secs_to_rfc3339, TimelineEntry};
