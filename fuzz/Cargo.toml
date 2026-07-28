@@ -1,0 +1,37 @@
+[package]
+name = "whatsapp-desktop-forensic-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+# Standalone workspace: cargo-fuzz builds this crate in isolation, not as a
+# member of the main workspace it fuzzes.
+[workspace]
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+arbitrary = { version = "1", features = ["derive"] }
+leveldb-core = { path = "../../leveldb-forensic/leveldb-core" }
+
+[dependencies.whatsapp-desktop-core]
+path = "../whatsapp-desktop-core"
+
+# Full pipeline: hostile LevelDB records -> IndexedDB/V8 decode -> every record
+# builder (message/chat/contact/media) + dedup/recovery + timeline.
+[[bin]]
+name = "parse_store"
+path = "fuzz_targets/parse_store.rs"
+test = false
+doc = false
+bench = false
+
+# The AES-CBC body decryptor on arbitrary ciphertext/iv/key.
+[[bin]]
+name = "decrypt_body"
+path = "fuzz_targets/decrypt_body.rs"
+test = false
+doc = false
+bench = false
