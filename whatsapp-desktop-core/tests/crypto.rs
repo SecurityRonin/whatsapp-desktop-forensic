@@ -38,6 +38,17 @@ fn wrong_key_fails_loud_not_fabricated() {
 }
 
 #[test]
+fn wrong_aes128_key_fails_loud_not_fabricated() {
+    // The AES-128 branch must fail loud on a wrong key exactly like AES-256:
+    // corrupt a 16-byte key so PKCS7 unpadding rejects it -> typed error, never
+    // plausible-but-wrong plaintext.
+    let mut bad = KEY128;
+    bad[0] ^= 0xff;
+    let r = decrypt_body(&CT128, &IV, &bad);
+    assert!(matches!(r, Err(WaError::Decrypt(_))), "got {r:?}");
+}
+
+#[test]
 fn bad_key_length_fails_loud() {
     let r = decrypt_body(&CT256, &IV, &[0u8; 20]);
     assert!(matches!(r, Err(WaError::BadKeyLen(20))), "got {r:?}");

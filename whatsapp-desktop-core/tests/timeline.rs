@@ -25,6 +25,19 @@ fn msg(id: &str, t: Option<i64>, kind: &str) -> Message {
 }
 
 #[test]
+fn equal_timestamps_break_the_tie_by_message_id() {
+    // Two messages at the SAME second must be ordered deterministically by
+    // message id (ascending), exercising the `.then_with` tie-break comparator.
+    let t = 1_596_233_451;
+    let messages = vec![msg("bbb", Some(t), "chat"), msg("aaa", Some(t), "chat")];
+    let tl: Vec<TimelineEntry> = TimelineEntry::build_timeline(&messages);
+    assert_eq!(tl.len(), 2);
+    assert_eq!(tl[0].message_id, "aaa");
+    assert_eq!(tl[1].message_id, "bbb");
+    assert_eq!(tl[0].timestamp_secs, tl[1].timestamp_secs);
+}
+
+#[test]
 fn epoch_to_rfc3339_matches_independent_oracle() {
     // Ground truth from Python datetime (UTC) — an independent implementation.
     assert_eq!(epoch_secs_to_rfc3339(0), "1970-01-01T00:00:00Z");

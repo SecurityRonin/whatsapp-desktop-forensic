@@ -9,6 +9,10 @@
 /fuzz/artifacts
 /fuzz/Cargo.lock
 
+# coverage artifacts (cargo-llvm-cov JSON + emitted lcov)
+/cov.json
+/lcov.info
+
 # OS / editor cruft
 .DS_Store
 Thumbs.db
