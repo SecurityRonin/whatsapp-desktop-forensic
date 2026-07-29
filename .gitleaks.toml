@@ -1,4 +1,8 @@
-# gitleaks configuration — extends the default ruleset. No project-specific
-# allowlist entries yet; real secrets surface against the upstream rules.
 [extend]
 useDefault = true
+# The minting script (scripts/mint) contains synthetic WhatsApp test data
+# (fake mediaKey/filehash/directPath used to build the tier-2 test store) — not
+# secrets. Allowlist that path only; production + core code stays scanned.
+[allowlist]
+description = "Synthetic minting-script test data is not a secret"
+paths = ['''scripts/mint/.*''']
