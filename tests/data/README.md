@@ -39,9 +39,11 @@ Cross-referenced from the fleet catalog `ronin-issen/docs/test-data-catalog.md`
   - `000003.log` = `6fd64ebd0191eaec3d2acc75da0dbcf9`
   - `CURRENT` = `46295cac801e5d4857d09837238a6394`
   - `MANIFEST-000001` = `3fd11ff447c1ee23538dc4d9724427a3`
-- **Consumed by:** `whatsapp-desktop-core/tests/oracle.rs` (record extraction +
-  encrypted-body + deleted-message recovery) and
-  `whatsapp-desktop-forensic/tests/` (findings).
+- **Consumed by:** `whatsapp-desktop-core/tests/store.rs` (record extraction +
+  deleted-message recovery), `whatsapp-desktop-forensic/tests/` (findings), and
+  `whatsapp-desktop-core/tests/differential_ccl.rs` (tier-1 differential of the
+  Chromium IndexedDB/V8 decode against `cclgroupltd/ccl_chromium_reader`;
+  env-gated on `CCL_WHATSAPP_ORACLE`).
 - **Re-mint:** `bash scripts/mint/mint.sh` (overwrites this directory). The exact
   bytes differ per run (LevelDB sequence numbers, origin file names) but the
   decoded records are stable; tests assert on decoded content, not raw bytes.

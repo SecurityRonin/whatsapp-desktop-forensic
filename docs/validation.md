@@ -7,6 +7,7 @@ reads as more validated than it is (Evidence-Based Rigor).
 
 | Path | Tier | Oracle |
 |---|---|---|
+| Chromium IndexedDB/V8 decode (record set + full value graph) | **T1** | Independent `cclgroupltd/ccl_chromium_reader` differential over the same bytes |
 | Record extraction (message/chat/contact/media) | **T2** | Real Chromium/V8 bytes minted in WhatsApp Web's documented schema |
 | Deleted-message recovery + dedup | **T2** | Same minted store (a real `put`→`delete` LevelDB tombstone) |
 | Timeline `epoch → RFC 3339` | **T1** | Independent Python `datetime` (UTC) Known-Answer-Test |
@@ -47,6 +48,42 @@ artifacts).
 - A differential against an independent WhatsApp Web IndexedDB parser
   (e.g. a DLEAPP/ALEAPP module) over the same store, reconciling record counts and
   contents.
+
+## Differential against ccl_chromium_reader (tier 1)
+
+The Chromium **IndexedDB-over-LevelDB (V8 structured-clone)** decode our parser
+sits on top of — the layer that turns raw LevelDB records into
+`(object_store, key, decoded-V8-value)` — is reconciled against the independent
+third-party reader
+[`cclgroupltd/ccl_chromium_reader`](https://github.com/cclgroupltd/ccl_chromium_reader)
+over the *same* minted store bytes. Two decoders authored by different people
+agreeing on real Chrome/V8 output is tier-1 evidence: the answer key is not ours.
+
+- **Test:** `whatsapp-desktop-core/tests/differential_ccl.rs`, driving the Python
+  oracle `whatsapp-desktop-core/tests/ccl_oracle.py`
+  (`ccl_chromium_reader.ccl_chromium_indexeddb`).
+- **What is reconciled:** the full *live view* — each `(object_store, primary key,
+  canonical value)` triple, where the canonical value is a deterministic,
+  dependency-free encoding of the entire decoded V8 object graph (nested objects,
+  integers, and the encrypted `msgRowOpaqueData` `iv`/`_data` byte blobs),
+  identical byte-for-byte on both sides. Both collapse their full
+  tombstone-keeping streams to the highest-sequence record per key and drop
+  deletions. Record **count** and the **triple set** must match exactly; a
+  divergence fails loud with the offending records.
+- **Result:** on the committed minted store the two decoders **agree** — all four
+  live records (two messages, one chat, one contact) match on key and full value.
+- **Gating:** env-gated on `CCL_WHATSAPP_ORACLE` (a Python interpreter that can
+  `import ccl_chromium_reader`; point `PYTHONPATH` at the checkout). Unset ⇒ the
+  test skips cleanly. Optional `CCL_WHATSAPP_DIR` overrides the store directory.
+
+      PYTHONPATH=/path/to/ccl_chromium_reader \
+      CCL_WHATSAPP_ORACLE=$(which python3) \
+          cargo test -p whatsapp-desktop-core --test differential_ccl -- --nocapture
+
+This lifts the **decode** layer (record set + value graph) to tier 1. The typed
+WhatsApp *interpretation* over that graph (which field means "sender", schema
+drift across app versions) stays tier 2 until reconciled against a real corpus or
+an independent WhatsApp-aware parser, per the two bullets above.
 
 ## Crypto scope and boundary
 
