@@ -9,7 +9,7 @@ authors.workspace = true
 # pulls MSRV up to 1.88; the analysis layer takes the capability bump
 # (batteries-included) rather than gate it out.
 rust-version = "1.88"
-readme = "README.md"
+readme.workspace = true
 description = "WhatsApp Desktop (Electron) reader — interprets the Chromium IndexedDB-over-LevelDB store's decoded V8 values into typed chats, messages, contacts, and media metadata, plus a merged timeline. Panic-free, fuzzed; encrypted blobs are flagged, never fabricated."
 
 [lib]

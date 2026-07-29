@@ -7,7 +7,7 @@ repository.workspace = true
 authors.workspace = true
 # Inherits the V8/Blink decode floor from whatsapp-desktop-core.
 rust-version = "1.88"
-readme = "README.md"
+readme.workspace = true
 description = "WhatsApp Desktop (Electron) analyzer — audits the IndexedDB-over-LevelDB `model-storage` for encrypted message bodies, recovered deleted-message tombstones, and media references, emitting normalized forensicnomicon findings. Panic-free, fuzzed."
 
 [lib]
