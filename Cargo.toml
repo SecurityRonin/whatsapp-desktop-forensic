@@ -15,23 +15,22 @@ repository = "https://github.com/SecurityRonin/whatsapp-desktop-forensic"
 authors = ["Albert Hui <albert@securityronin.com>"]
 
 [workspace.dependencies]
-# Fleet crates: `version + path` so the local checkout builds while the semver
-# requirement is honest (no wildcard) and consumers get the registry version once
-# each is published. Switch to registry-only once all are on crates.io.
+# Fleet crates: registry carets — every one is published on crates.io, so the
+# build resolves them from the registry (no local path checkout required).
 #
 # KNOWLEDGE leaf — the messenger-desktop artifact specs + Chromium key-coding /
 # V8-tag constants. REUSE these; never re-hardcode a path template or tag byte.
-forensicnomicon-core = { version = "1", path = "../../knowledge/forensicnomicon/crates/core" }
+forensicnomicon-core = "1.5"
 # The Chromium IndexedDB-over-LevelDB reader (walks the key coding, decodes each
 # object-store record's Blink-wrapped V8 value). This crate parses ON TOP of it.
-chromium-storage-indexeddb = { version = "0.1", path = "../chromium-storage-forensic/chromium-storage-indexeddb" }
+chromium-storage-indexeddb = "0.1"
 # Raw, read-only LevelDB record reader (surfaces tombstones + sequence numbers).
-leveldb-core = { version = "0.1", path = "../leveldb-forensic/leveldb-core" }
+leveldb-core = "0.1"
 # V8 / Blink structured-clone value type + deserializer (test-side decode of real
 # `v8.serialize()` bytes; the record value type is re-exported through the reader).
-blob-decoder = { version = "0.1", path = "../../utility/blob-decoder", default-features = false }
+blob-decoder = { version = "0.2", default-features = false }
 # Panic-free bounded integer readers over untrusted bytes (the shared front door).
-safe-read = { version = "0.2", path = "../../utility/safe-read" }
+safe-read = "0.2"
 # Faithful, round-trippable machine output (JSON/JSONL) for the record types.
 serde = { version = "1", features = ["derive"] }
 # Typed, fail-loud errors (never a swallowed default).
