@@ -47,3 +47,41 @@ Cross-referenced from the fleet catalog `ronin-issen/docs/test-data-catalog.md`
 - **Re-mint:** `bash scripts/mint/mint.sh` (overwrites this directory). The exact
   bytes differ per run (LevelDB sequence numbers, origin file names) but the
   decoded records are stable; tests assert on decoded content, not raw bytes.
+- **Oracle env gate:** `CCL_WHATSAPP_ORACLE` (a Python interpreter that can
+  `import ccl_chromium_reader`) and optional `CCL_WHATSAPP_DIR` (read a different
+  store dir). Driver script: `whatsapp-desktop-core/tests/ccl_oracle.py`.
+  ```sh
+  PYTHONPATH=/path/to/ccl_chromium_reader CCL_WHATSAPP_ORACLE=$(which python3) \
+      cargo test -p whatsapp-desktop-core --test differential_ccl
+  ```
+
+## AES-CBC message-body KAT vectors — REAL-ext (openssl-authored), tier 1
+
+The `decrypt_body` crypto path is **not** validated from the store above — a
+self-encoded round-trip would be circular. It is checked against **openssl-authored**
+Known-Answer vectors held as `hex_literal::hex!` constants in
+`whatsapp-desktop-core/tests/crypto.rs` (no files committed):
+
+- keys: AES-256 `0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20`,
+  AES-128 `0102030405060708090a0b0c0d0e0f10`
+- IV `000102030405060708090a0b0c0d0e0f`
+- plaintext `WhatsApp E2E body plaintext, 42!` (32 bytes)
+- ciphertext AES-256 (48 bytes, PKCS7)
+  `e52fc6172af8c0cba684baecb46594188c16f540d2402c394cb9409a6a9385e18c81d24a9ffcc80fdc32c694493c0297`
+- ciphertext AES-128 (48 bytes, PKCS7)
+  `1f0fe41723155396f55c9e2c0d1578e38001047dc347311a20ab653c4950ac337a10e35879a023fa7ddc859fabbae716`
+
+**Verbatim generator** (the file header records this abbreviated; these are the full
+lines, re-run 2026-07-30 with OpenSSL 3.0.15 and confirmed to reproduce both
+ciphertexts byte-for-byte):
+
+```sh
+printf '%s' 'WhatsApp E2E body plaintext, 42!' | openssl enc -aes-256-cbc -K 0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20 -iv 000102030405060708090a0b0c0d0e0f -nosalt | xxd -p
+printf '%s' 'WhatsApp E2E body plaintext, 42!' | openssl enc -aes-128-cbc -K 0102030405060708090a0b0c0d0e0f10 -iv 000102030405060708090a0b0c0d0e0f -nosalt | xxd -p
+```
+
+Consumed by `whatsapp-desktop-core/tests/crypto.rs` — `decrypts_aes256_cbc_kat`,
+`decrypts_aes128_cbc_kat`, plus four fail-loud negatives
+(`wrong_key_fails_loud_not_fabricated`, `wrong_aes128_key_fails_loud_not_fabricated`,
+`bad_key_length_fails_loud`, `bad_iv_length_fails_loud`). Redistribution: public test
+constants chosen here; no key material of value.
