@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1](https://github.com/SecurityRonin/whatsapp-desktop-forensic/compare/whatsapp-desktop-core-v0.1.0...whatsapp-desktop-core-v0.1.1) - 2026-07-30
+
+### Fixed
+
+- *(reader)* reject the zero-epoch sentinel; make record identity injective
+
 ## [0.1.0](https://github.com/SecurityRonin/whatsapp-desktop-forensic/releases/tag/whatsapp-desktop-core-v0.1.0) - 2026-07-29
 
 ### Added
