@@ -1,0 +1,28 @@
+pub mod whatsapp_desktop_forensic
+pub use whatsapp_desktop_forensic::WaError
+#[non_exhaustive] pub enum whatsapp_desktop_forensic::WaAnomaly
+pub whatsapp_desktop_forensic::WaAnomaly::DeletedMessageRecovered
+pub whatsapp_desktop_forensic::WaAnomaly::DeletedMessageRecovered::from: core::option::Option<alloc::string::String>
+pub whatsapp_desktop_forensic::WaAnomaly::DeletedMessageRecovered::id: alloc::string::String
+pub whatsapp_desktop_forensic::WaAnomaly::DeletedMessageRecovered::to: core::option::Option<alloc::string::String>
+pub whatsapp_desktop_forensic::WaAnomaly::DeletedMessageRecovered::when: core::option::Option<alloc::string::String>
+pub whatsapp_desktop_forensic::WaAnomaly::EncryptedMessageBody
+pub whatsapp_desktop_forensic::WaAnomaly::EncryptedMessageBody::ciphertext_len: usize
+pub whatsapp_desktop_forensic::WaAnomaly::EncryptedMessageBody::id: alloc::string::String
+pub whatsapp_desktop_forensic::WaAnomaly::EncryptedMessageBody::key_id: core::option::Option<alloc::string::String>
+pub whatsapp_desktop_forensic::WaAnomaly::MediaReference
+pub whatsapp_desktop_forensic::WaAnomaly::MediaReference::direct_path: core::option::Option<alloc::string::String>
+pub whatsapp_desktop_forensic::WaAnomaly::MediaReference::id: alloc::string::String
+pub whatsapp_desktop_forensic::WaAnomaly::MediaReference::mimetype: core::option::Option<alloc::string::String>
+impl forensicnomicon_core::report::Observation for whatsapp_desktop_forensic::WaAnomaly
+pub fn whatsapp_desktop_forensic::WaAnomaly::category(&self) -> forensicnomicon_core::report::Category
+pub fn whatsapp_desktop_forensic::WaAnomaly::code(&self) -> &'static str
+pub fn whatsapp_desktop_forensic::WaAnomaly::evidence(&self) -> alloc::vec::Vec<forensicnomicon_core::report::Evidence>
+pub fn whatsapp_desktop_forensic::WaAnomaly::mitre(&self) -> &'static [&'static str]
+pub fn whatsapp_desktop_forensic::WaAnomaly::note(&self) -> alloc::string::String
+pub fn whatsapp_desktop_forensic::WaAnomaly::severity(&self) -> core::option::Option<forensicnomicon_core::report::Severity>
+pub const whatsapp_desktop_forensic::CODE_DELETED_RECOVERED: &str
+pub const whatsapp_desktop_forensic::CODE_ENCRYPTED_BODY: &str
+pub const whatsapp_desktop_forensic::CODE_MEDIA_REF: &str
+pub fn whatsapp_desktop_forensic::audit(&whatsapp_desktop_core::store::WhatsAppStore) -> alloc::vec::Vec<forensicnomicon_core::report::Finding>
+pub fn whatsapp_desktop_forensic::audit_path(&std::path::Path) -> core::result::Result<alloc::vec::Vec<forensicnomicon_core::report::Finding>, whatsapp_desktop_core::error::WaError>

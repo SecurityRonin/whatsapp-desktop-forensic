@@ -1,0 +1,107 @@
+pub mod whatsapp_desktop_core
+pub use whatsapp_desktop_core::IdbKey
+pub use whatsapp_desktop_core::IndexedDbRecord
+pub use whatsapp_desktop_core::RecordValue
+pub use whatsapp_desktop_core::V8Value
+pub use whatsapp_desktop_core::decode_records
+pub use whatsapp_desktop_core::read_dir
+pub mod whatsapp_desktop_core::schema
+pub const whatsapp_desktop_core::schema::DB_MODEL_STORAGE: &str
+pub const whatsapp_desktop_core::schema::F_ACK: &str
+pub const whatsapp_desktop_core::schema::F_DIRECT_PATH: &str
+pub const whatsapp_desktop_core::schema::F_FILEHASH: &str
+pub const whatsapp_desktop_core::schema::F_FROM: &str
+pub const whatsapp_desktop_core::schema::F_HEIGHT: &str
+pub const whatsapp_desktop_core::schema::F_ID: &str
+pub const whatsapp_desktop_core::schema::F_MEDIA_KEY: &str
+pub const whatsapp_desktop_core::schema::F_MIMETYPE: &str
+pub const whatsapp_desktop_core::schema::F_MSG_ROW_OPAQUE_DATA: &str
+pub const whatsapp_desktop_core::schema::F_NAME: &str
+pub const whatsapp_desktop_core::schema::F_NOTIFY_NAME: &str
+pub const whatsapp_desktop_core::schema::F_OPAQUE_DATA: &str
+pub const whatsapp_desktop_core::schema::F_OPAQUE_IV: &str
+pub const whatsapp_desktop_core::schema::F_OPAQUE_KEY_ID: &str
+pub const whatsapp_desktop_core::schema::F_PUSHNAME: &str
+pub const whatsapp_desktop_core::schema::F_SHORT_NAME: &str
+pub const whatsapp_desktop_core::schema::F_SIZE: &str
+pub const whatsapp_desktop_core::schema::F_T: &str
+pub const whatsapp_desktop_core::schema::F_TO: &str
+pub const whatsapp_desktop_core::schema::F_TYPE: &str
+pub const whatsapp_desktop_core::schema::F_UNREAD_COUNT: &str
+pub const whatsapp_desktop_core::schema::F_WIDTH: &str
+pub const whatsapp_desktop_core::schema::STORE_CHAT: &str
+pub const whatsapp_desktop_core::schema::STORE_CONTACT: &str
+pub const whatsapp_desktop_core::schema::STORE_GROUP_METADATA: &str
+pub const whatsapp_desktop_core::schema::STORE_MESSAGE: &str
+pub enum whatsapp_desktop_core::MessageBody
+pub whatsapp_desktop_core::MessageBody::Encrypted(whatsapp_desktop_core::EncryptedBody)
+pub whatsapp_desktop_core::MessageBody::None
+#[non_exhaustive] pub enum whatsapp_desktop_core::WaError
+pub whatsapp_desktop_core::WaError::BadIvLen(usize)
+pub whatsapp_desktop_core::WaError::BadKeyLen(usize)
+pub whatsapp_desktop_core::WaError::Decrypt(&'static str)
+pub whatsapp_desktop_core::WaError::LevelDb(leveldb_core::error::Error)
+pub struct whatsapp_desktop_core::Chat
+pub whatsapp_desktop_core::Chat::deleted: bool
+pub whatsapp_desktop_core::Chat::id: alloc::string::String
+pub whatsapp_desktop_core::Chat::name: core::option::Option<alloc::string::String>
+pub whatsapp_desktop_core::Chat::seq: u64
+pub whatsapp_desktop_core::Chat::timestamp_secs: core::option::Option<i64>
+pub whatsapp_desktop_core::Chat::unread_count: core::option::Option<i64>
+impl whatsapp_desktop_core::Chat
+pub fn whatsapp_desktop_core::Chat::from_record(&chromium_storage_indexeddb::IndexedDbRecord) -> core::option::Option<whatsapp_desktop_core::Chat>
+pub struct whatsapp_desktop_core::Contact
+pub whatsapp_desktop_core::Contact::deleted: bool
+pub whatsapp_desktop_core::Contact::id: alloc::string::String
+pub whatsapp_desktop_core::Contact::name: core::option::Option<alloc::string::String>
+pub whatsapp_desktop_core::Contact::notify_name: core::option::Option<alloc::string::String>
+pub whatsapp_desktop_core::Contact::push_name: core::option::Option<alloc::string::String>
+pub whatsapp_desktop_core::Contact::seq: u64
+pub whatsapp_desktop_core::Contact::short_name: core::option::Option<alloc::string::String>
+impl whatsapp_desktop_core::Contact
+pub fn whatsapp_desktop_core::Contact::from_record(&chromium_storage_indexeddb::IndexedDbRecord) -> core::option::Option<whatsapp_desktop_core::Contact>
+pub struct whatsapp_desktop_core::EncryptedBody
+pub whatsapp_desktop_core::EncryptedBody::ciphertext: alloc::vec::Vec<u8>
+pub whatsapp_desktop_core::EncryptedBody::iv: alloc::vec::Vec<u8>
+pub whatsapp_desktop_core::EncryptedBody::key_id: core::option::Option<alloc::string::String>
+pub struct whatsapp_desktop_core::MediaMeta
+pub whatsapp_desktop_core::MediaMeta::direct_path: core::option::Option<alloc::string::String>
+pub whatsapp_desktop_core::MediaMeta::filehash: core::option::Option<alloc::string::String>
+pub whatsapp_desktop_core::MediaMeta::height: core::option::Option<i64>
+pub whatsapp_desktop_core::MediaMeta::media_key: core::option::Option<alloc::string::String>
+pub whatsapp_desktop_core::MediaMeta::mimetype: core::option::Option<alloc::string::String>
+pub whatsapp_desktop_core::MediaMeta::size: core::option::Option<i64>
+pub whatsapp_desktop_core::MediaMeta::width: core::option::Option<i64>
+pub struct whatsapp_desktop_core::Message
+pub whatsapp_desktop_core::Message::ack: core::option::Option<i64>
+pub whatsapp_desktop_core::Message::body: whatsapp_desktop_core::MessageBody
+pub whatsapp_desktop_core::Message::deleted: bool
+pub whatsapp_desktop_core::Message::from: core::option::Option<alloc::string::String>
+pub whatsapp_desktop_core::Message::id: alloc::string::String
+pub whatsapp_desktop_core::Message::kind: core::option::Option<alloc::string::String>
+pub whatsapp_desktop_core::Message::media: core::option::Option<whatsapp_desktop_core::MediaMeta>
+pub whatsapp_desktop_core::Message::notify_name: core::option::Option<alloc::string::String>
+pub whatsapp_desktop_core::Message::seq: u64
+pub whatsapp_desktop_core::Message::timestamp_secs: core::option::Option<i64>
+pub whatsapp_desktop_core::Message::to: core::option::Option<alloc::string::String>
+impl whatsapp_desktop_core::Message
+pub fn whatsapp_desktop_core::Message::from_record(&chromium_storage_indexeddb::IndexedDbRecord) -> core::option::Option<whatsapp_desktop_core::Message>
+pub struct whatsapp_desktop_core::TimelineEntry
+pub whatsapp_desktop_core::TimelineEntry::deleted: bool
+pub whatsapp_desktop_core::TimelineEntry::from: core::option::Option<alloc::string::String>
+pub whatsapp_desktop_core::TimelineEntry::kind: core::option::Option<alloc::string::String>
+pub whatsapp_desktop_core::TimelineEntry::message_id: alloc::string::String
+pub whatsapp_desktop_core::TimelineEntry::rfc3339: alloc::string::String
+pub whatsapp_desktop_core::TimelineEntry::timestamp_secs: i64
+pub whatsapp_desktop_core::TimelineEntry::to: core::option::Option<alloc::string::String>
+impl whatsapp_desktop_core::TimelineEntry
+pub fn whatsapp_desktop_core::TimelineEntry::build_timeline(&[whatsapp_desktop_core::Message]) -> alloc::vec::Vec<whatsapp_desktop_core::TimelineEntry>
+pub struct whatsapp_desktop_core::WhatsAppStore
+pub whatsapp_desktop_core::WhatsAppStore::chats: alloc::vec::Vec<whatsapp_desktop_core::Chat>
+pub whatsapp_desktop_core::WhatsAppStore::contacts: alloc::vec::Vec<whatsapp_desktop_core::Contact>
+pub whatsapp_desktop_core::WhatsAppStore::messages: alloc::vec::Vec<whatsapp_desktop_core::Message>
+pub whatsapp_desktop_core::WhatsAppStore::timeline: alloc::vec::Vec<whatsapp_desktop_core::TimelineEntry>
+pub fn whatsapp_desktop_core::decrypt_body(&[u8], &[u8], &[u8]) -> core::result::Result<alloc::vec::Vec<u8>, whatsapp_desktop_core::WaError>
+pub fn whatsapp_desktop_core::epoch_secs_to_rfc3339(i64) -> alloc::string::String
+pub fn whatsapp_desktop_core::open(&std::path::Path) -> core::result::Result<whatsapp_desktop_core::WhatsAppStore, whatsapp_desktop_core::WaError>
+pub fn whatsapp_desktop_core::parse_records(&[chromium_storage_indexeddb::IndexedDbRecord]) -> whatsapp_desktop_core::WhatsAppStore
