@@ -1,4 +1,6 @@
-//! Analyzer findings over the real minted store (tier-2 oracle).
+//! Analyzer findings over the real minted store (tier-2 oracle), plus one
+//! tier-3 synthetic record pinning that a zero `t` is never dated to 1970 (the
+//! rule is this crate's own specification, so no external oracle adjudicates it).
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
 use forensicnomicon_core::report::{Category, Finding, Severity};
