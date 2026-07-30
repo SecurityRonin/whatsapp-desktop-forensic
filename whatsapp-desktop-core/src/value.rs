@@ -39,6 +39,27 @@ pub(crate) fn int_field(v: &V8Value, name: &str) -> Option<i64> {
     }
 }
 
+/// `name` as a Unix-epoch **seconds** event time, or `None` when it is absent,
+/// wrong-typed, or the zero sentinel.
+///
+/// See [`is_datable`] for why zero is not a time.
+#[must_use]
+pub(crate) fn epoch_secs_field(v: &V8Value, name: &str) -> Option<i64> {
+    int_field(v, name).filter(|&t| is_datable(t))
+}
+
+/// `true` when `t` can be placed on a timeline.
+///
+/// Zero is WhatsApp's absent/unset time, not 1970-01-01T00:00:00Z: no message was
+/// ever sent at the Unix epoch, so reading the sentinel as a real time fabricates
+/// a 1970 event. Every timestamp path applies this — the reader ([`epoch_secs_field`])
+/// and [`crate::TimelineEntry::build_timeline`], so a caller who builds a
+/// [`crate::Message`] by hand cannot reintroduce the 1970 row either.
+#[must_use]
+pub(crate) fn is_datable(t: i64) -> bool {
+    t != 0
+}
+
 /// `name` as raw bytes, if present and an `ArrayBuffer`.
 #[must_use]
 pub(crate) fn bytes_field(v: &V8Value, name: &str) -> Option<Vec<u8>> {

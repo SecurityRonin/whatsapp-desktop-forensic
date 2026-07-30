@@ -7,7 +7,7 @@
 
 use crate::media::MediaMeta;
 use crate::schema;
-use crate::value::{bytes_field, field, int_field, str_field};
+use crate::value::{bytes_field, epoch_secs_field, field, int_field, str_field};
 use chromium_storage_indexeddb::{IndexedDbRecord, RecordValue, V8Value};
 use serde::Serialize;
 
@@ -39,7 +39,8 @@ pub enum MessageBody {
 pub struct Message {
     /// Message id (`id`, also the primary key).
     pub id: String,
-    /// `t` — send time, seconds since the Unix epoch.
+    /// `t` — send time, seconds since the Unix epoch. `None` when the field is
+    /// absent, wrong-typed, or the zero sentinel (which is not a send time).
     pub timestamp_secs: Option<i64>,
     /// `from` — sender JID.
     pub from: Option<String>,
@@ -82,7 +83,7 @@ impl Message {
         let id = str_field(v, schema::F_ID).unwrap_or_default();
         Message {
             id,
-            timestamp_secs: int_field(v, schema::F_T),
+            timestamp_secs: epoch_secs_field(v, schema::F_T),
             from: str_field(v, schema::F_FROM),
             to: str_field(v, schema::F_TO),
             kind: str_field(v, schema::F_TYPE),

@@ -14,7 +14,7 @@ use crate::error::WaError;
 use crate::message::Message;
 use crate::schema;
 use crate::timeline::TimelineEntry;
-use chromium_storage_indexeddb::{IdbKey, IndexedDbRecord, RecordValue};
+use chromium_storage_indexeddb::{IndexedDbRecord, RecordValue};
 use serde::Serialize;
 use std::collections::BTreeMap;
 use std::path::Path;
@@ -74,12 +74,21 @@ pub fn parse_records(records: &[IndexedDbRecord]) -> WhatsAppStore {
     }
 }
 
-/// A canonical, stable string identity for a record's primary key.
-fn key_identity(key: &IdbKey) -> String {
-    match key {
-        IdbKey::String(s) => s.clone(),
-        other => format!("{other:?}"),
-    }
+/// A canonical, stable, **injective** identity for one object-store record.
+///
+/// An IndexedDB primary key is unique only within one object store of one
+/// database, and a single `<origin>.indexeddb.leveldb` directory holds every
+/// database of that origin — the `KeyPrefix`'s `(database id, object store id)` is
+/// what separates them. Both coordinates therefore belong in the identity:
+/// grouping on the resolved store *name* alone would merge two databases' key
+/// spaces, and would also merge a retired object store with a recreated one of the
+/// same name (`deleteObjectStore` + `createObjectStore` yields a new id).
+///
+/// The key itself is rendered with `Debug` for **every** variant, so the rendering
+/// is variant-tagged and cannot collide: passing `IdbKey::String` through verbatim
+/// would make the string key `Number(1.0)` and the numeric key `1.0` one identity.
+fn record_identity(r: &IndexedDbRecord) -> (u64, u64, String) {
+    (r.database_id, r.object_store_id, format!("{:?}", r.key))
 }
 
 /// Collapse each primary key in `store` to one built record.
@@ -95,10 +104,10 @@ where
 {
     // BTreeMap keyed by identity keeps output deterministic; each entry keeps the
     // records for that key in arrival order (LevelDB yields ascending sequence).
-    let mut groups: BTreeMap<String, Vec<&IndexedDbRecord>> = BTreeMap::new();
+    let mut groups: BTreeMap<(u64, u64, String), Vec<&IndexedDbRecord>> = BTreeMap::new();
     for r in records {
         if r.object_store.as_deref() == Some(store) {
-            groups.entry(key_identity(&r.key)).or_default().push(r);
+            groups.entry(record_identity(r)).or_default().push(r);
         }
     }
 

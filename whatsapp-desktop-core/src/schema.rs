@@ -30,7 +30,8 @@ pub const STORE_GROUP_METADATA: &str = "group-metadata";
 // ── message value fields ──────────────────────────────────────────────────────
 /// Message id (also the object-store keyPath).
 pub const F_ID: &str = "id";
-/// Message timestamp, **seconds** since the Unix epoch.
+/// Message timestamp, **seconds** since the Unix epoch (WhatsApp Web's own unit
+/// — not the Cocoa 2001 epoch the Apple/Core-Data client uses). Zero means unset.
 pub const F_T: &str = "t";
 /// Sender JID.
 pub const F_FROM: &str = "from";

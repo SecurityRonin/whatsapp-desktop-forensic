@@ -1,6 +1,7 @@
 //! A merged, time-ordered message timeline.
 
 use crate::message::Message;
+use crate::value::is_datable;
 use serde::Serialize;
 
 /// One event in the message timeline.
@@ -24,13 +25,14 @@ pub struct TimelineEntry {
 
 impl TimelineEntry {
     /// Build a timeline from messages, ascending by time then id. Messages with
-    /// no `t` are omitted (they cannot be placed on a timeline).
+    /// no datable `t` are omitted: they cannot be placed on a timeline. A zero `t`
+    /// is WhatsApp's unset time, not 1970-01-01, so it is not datable either.
     #[must_use]
     pub fn build_timeline(messages: &[Message]) -> Vec<TimelineEntry> {
         let mut entries: Vec<TimelineEntry> = messages
             .iter()
             .filter_map(|m| {
-                let t = m.timestamp_secs?;
+                let t = m.timestamp_secs.filter(|&t| is_datable(t))?;
                 Some(TimelineEntry {
                     timestamp_secs: t,
                     rfc3339: epoch_secs_to_rfc3339(t),

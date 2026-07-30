@@ -1,7 +1,7 @@
 //! WhatsApp Web `chat` object-store records — the conversation roster.
 
 use crate::schema;
-use crate::value::{int_field, str_field};
+use crate::value::{epoch_secs_field, int_field, str_field};
 use chromium_storage_indexeddb::{IndexedDbRecord, RecordValue, V8Value};
 use serde::Serialize;
 
@@ -12,7 +12,8 @@ pub struct Chat {
     pub id: String,
     /// `name` — display name.
     pub name: Option<String>,
-    /// `t` — last-activity time, seconds since the Unix epoch.
+    /// `t` — last-activity time, seconds since the Unix epoch. `None` when the
+    /// field is absent, wrong-typed, or the zero sentinel.
     pub timestamp_secs: Option<i64>,
     /// `unreadCount` — unread message count.
     pub unread_count: Option<i64>,
@@ -38,7 +39,7 @@ impl Chat {
         Chat {
             id: str_field(v, schema::F_ID).unwrap_or_default(),
             name: str_field(v, schema::F_NAME),
-            timestamp_secs: int_field(v, schema::F_T),
+            timestamp_secs: epoch_secs_field(v, schema::F_T),
             unread_count: int_field(v, schema::F_UNREAD_COUNT),
             deleted,
             seq,
