@@ -63,3 +63,22 @@ fn timeline_sorts_ascending_and_renders_time() {
     assert_eq!(tl[1].kind.as_deref(), Some("image"));
     assert!(tl[0].timestamp_secs < tl[1].timestamp_secs);
 }
+
+#[test]
+fn a_zero_timestamp_never_becomes_a_1970_timeline_row() {
+    // The pure `epoch_secs_to_rfc3339(0) == "1970-01-01T00:00:00Z"` above is the
+    // correct answer for the *conversion*. What must never happen is a message
+    // reaching the timeline with the zero sentinel as its event time: 0 is not a
+    // WhatsApp send time, so the entry is not datable and is omitted.
+    let messages = vec![
+        msg("zero", Some(0), "chat"),
+        msg("dated", Some(1_596_233_451), "chat"),
+    ];
+    let tl: Vec<TimelineEntry> = TimelineEntry::build_timeline(&messages);
+    assert_eq!(tl.len(), 1, "the t=0 message is not datable");
+    assert_eq!(tl[0].message_id, "dated");
+    assert!(
+        tl.iter().all(|e| e.rfc3339 != "1970-01-01T00:00:00Z"),
+        "no 1970 row may enter a forensic timeline"
+    );
+}

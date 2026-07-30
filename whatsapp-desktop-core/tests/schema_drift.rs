@@ -39,9 +39,23 @@ fn record(
     seq: u64,
     deleted: bool,
 ) -> IndexedDbRecord {
+    record_in(1, 1, store, key, value, seq, deleted)
+}
+
+/// As [`record`], but placed in an explicit `(database id, object store id)` —
+/// the two `KeyPrefix` coordinates a primary key is only unique *within*.
+fn record_in(
+    database_id: u64,
+    object_store_id: u64,
+    store: &str,
+    key: IdbKey,
+    value: RecordValue,
+    seq: u64,
+    deleted: bool,
+) -> IndexedDbRecord {
     IndexedDbRecord {
-        database_id: 1,
-        object_store_id: 1,
+        database_id,
+        object_store_id,
         database: Some(schema::DB_MODEL_STORAGE.to_string()),
         object_store: Some(store.to_string()),
         key,
@@ -299,4 +313,148 @@ fn key_with_no_surviving_content_is_skipped_not_fabricated() {
     assert_eq!(store.messages.len(), 1, "the content-less key is skipped");
     assert_eq!(store.messages[0].id, "kept");
     assert!(!store.messages[0].deleted);
+}
+
+// ── the zero-epoch sentinel is not a date ────────────────────────────────────
+
+#[test]
+fn zero_message_timestamp_is_absent_never_1970() {
+    // `t == 0` is WhatsApp's absent/unset time, not 1970-01-01T00:00:00Z. Reading
+    // it as a real epoch puts a 1970 row on a forensic timeline, which is wrong
+    // output regardless of how often the sentinel appears in the wild.
+    for zero in [V8Value::Int(0), V8Value::Double(0.0)] {
+        let r = record(
+            schema::STORE_MESSAGE,
+            IdbKey::String("m0".into()),
+            v8(obj(vec![(schema::F_ID, text("m0")), (schema::F_T, zero)])),
+            1,
+            false,
+        );
+        let m = Message::from_record(&r).unwrap();
+        assert_eq!(
+            m.timestamp_secs, None,
+            "t=0 is the absent-time sentinel, not epoch 0"
+        );
+
+        let store = parse_records(&[r]);
+        assert!(
+            store.timeline.is_empty(),
+            "a t=0 message must not enter the timeline as a 1970 row"
+        );
+    }
+}
+
+#[test]
+fn zero_chat_timestamp_is_absent_never_1970() {
+    let r = record(
+        schema::STORE_CHAT,
+        IdbKey::String("15551239999@c.us".into()),
+        v8(obj(vec![
+            (schema::F_ID, text("15551239999@c.us")),
+            (schema::F_T, V8Value::Int(0)),
+            (schema::F_UNREAD_COUNT, V8Value::Int(0)),
+        ])),
+        1,
+        false,
+    );
+    let c = Chat::from_record(&r).unwrap();
+    assert_eq!(c.timestamp_secs, None, "t=0 is absent, not epoch 0");
+    // A genuine zero *count* is still a count — only the epoch field is sentinelled.
+    assert_eq!(c.unread_count, Some(0));
+}
+
+// ── a primary key is unique only within one object store of one database ─────
+
+#[test]
+fn the_same_primary_key_in_two_databases_is_two_records() {
+    // Chromium keeps every IndexedDB database of an origin in ONE
+    // `<origin>.indexeddb.leveldb` directory, distinguished by the `database_id`
+    // in each record's `KeyPrefix`. Keying dedup on the object-store *name* alone
+    // merges two databases' key spaces, silently dropping the lower-seq record.
+    let msg = |id: &str| v8(obj(vec![(schema::F_ID, text(id))]));
+    let store = parse_records(&[
+        record_in(
+            1,
+            1,
+            schema::STORE_MESSAGE,
+            IdbKey::String("shared-key".into()),
+            msg("in-database-1"),
+            1,
+            false,
+        ),
+        record_in(
+            2,
+            1,
+            schema::STORE_MESSAGE,
+            IdbKey::String("shared-key".into()),
+            msg("in-database-2"),
+            2,
+            false,
+        ),
+    ]);
+    let mut ids: Vec<_> = store.messages.iter().map(|m| m.id.clone()).collect();
+    ids.sort();
+    assert_eq!(
+        ids,
+        ["in-database-1", "in-database-2"],
+        "distinct databases have distinct key spaces — neither record may be dropped"
+    );
+}
+
+#[test]
+fn the_same_key_under_a_recreated_object_store_id_is_two_records() {
+    // `deleteObjectStore` + `createObjectStore` with the same name yields a NEW
+    // object-store id; both ids resolve to the name "message", so name-only
+    // grouping conflates the retired store's residue with the live store.
+    let msg = |id: &str| v8(obj(vec![(schema::F_ID, text(id))]));
+    let store = parse_records(&[
+        record_in(
+            1,
+            1,
+            schema::STORE_MESSAGE,
+            IdbKey::String("shared-key".into()),
+            msg("retired-store"),
+            1,
+            false,
+        ),
+        record_in(
+            1,
+            2,
+            schema::STORE_MESSAGE,
+            IdbKey::String("shared-key".into()),
+            msg("live-store"),
+            2,
+            false,
+        ),
+    ]);
+    let mut ids: Vec<_> = store.messages.iter().map(|m| m.id.clone()).collect();
+    ids.sort();
+    assert_eq!(ids, ["live-store", "retired-store"]);
+}
+
+#[test]
+fn a_string_key_never_collides_with_a_non_string_key() {
+    // Rendering non-string keys with `Debug` while passing string keys through
+    // verbatim is not injective: the string key `Number(1)` and the numeric key
+    // 1.0 collapse to the same identity, dropping one message.
+    let msg = |id: &str| v8(obj(vec![(schema::F_ID, text(id))]));
+    let store = parse_records(&[
+        record(
+            schema::STORE_MESSAGE,
+            IdbKey::String("Number(1.0)".into()),
+            msg("string-keyed"),
+            1,
+            false,
+        ),
+        record(
+            schema::STORE_MESSAGE,
+            IdbKey::Number(1.0),
+            msg("number-keyed"),
+            2,
+            false,
+        ),
+    ]);
+    let mut ids: Vec<_> = store.messages.iter().map(|m| m.id.clone()).collect();
+    ids.sort();
+    assert_eq!(ids, ["number-keyed", "string-keyed"]);
 }
