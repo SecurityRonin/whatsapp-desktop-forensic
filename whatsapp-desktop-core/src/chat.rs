@@ -13,7 +13,7 @@ pub struct Chat {
     /// `name` — display name.
     pub name: Option<String>,
     /// `t` — last-activity time, seconds since the Unix epoch. `None` when the
-    /// field is absent, wrong-typed, or the zero sentinel.
+    /// field is absent, wrong-typed, or outside the plausible range.
     pub timestamp_secs: Option<i64>,
     /// `unreadCount` — unread message count.
     pub unread_count: Option<i64>,

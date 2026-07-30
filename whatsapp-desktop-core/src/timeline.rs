@@ -25,8 +25,9 @@ pub struct TimelineEntry {
 
 impl TimelineEntry {
     /// Build a timeline from messages, ascending by time then id. Messages with
-    /// no datable `t` are omitted: they cannot be placed on a timeline. A zero `t`
-    /// is WhatsApp's unset time, not 1970-01-01, so it is not datable either.
+    /// no datable `t` are omitted: they cannot be placed on a timeline. A `t`
+    /// outside the plausible range — the zero unset sentinel, a negative value, an
+    /// absurd magnitude — is not datable either (see `crate::value::is_datable`).
     #[must_use]
     pub fn build_timeline(messages: &[Message]) -> Vec<TimelineEntry> {
         let mut entries: Vec<TimelineEntry> = messages

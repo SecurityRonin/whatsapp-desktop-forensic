@@ -22,6 +22,9 @@ pub const CODE_DELETED_RECOVERED: &str = "WA-MSG-DELETED-RECOVERED";
 /// Stable finding code: a media message referencing an off-store blob.
 pub const CODE_MEDIA_REF: &str = "WA-MSG-MEDIA-REF";
 
+/// Rendered `when` evidence for a message that carries no plausible send time.
+const WHEN_UNKNOWN: &str = "unknown";
+
 /// A typed WhatsApp Desktop anomaly. Implements [`Observation`] so the canonical
 /// [`Finding`] assembly lives in the shared report model.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -126,7 +129,13 @@ impl Observation for WaAnomaly {
                 row("message_id", id.clone()),
                 row("from", from.clone().unwrap_or_default()),
                 row("to", to.clone().unwrap_or_default()),
-                row("when", when.clone().unwrap_or_default()),
+                // A send time the record does not plausibly carry is NAMED, not
+                // left blank: an empty cell reads as "nothing was there to read",
+                // while the recovered record did carry a `t` that is no date.
+                row(
+                    "when",
+                    when.clone().unwrap_or_else(|| WHEN_UNKNOWN.to_string()),
+                ),
             ],
             WaAnomaly::MediaReference {
                 id,

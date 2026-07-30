@@ -40,7 +40,8 @@ pub struct Message {
     /// Message id (`id`, also the primary key).
     pub id: String,
     /// `t` — send time, seconds since the Unix epoch. `None` when the field is
-    /// absent, wrong-typed, or the zero sentinel (which is not a send time).
+    /// absent, wrong-typed, or outside the plausible range (the zero sentinel, a
+    /// negative value, an absurd magnitude — none of which is a send time).
     pub timestamp_secs: Option<i64>,
     /// `from` — sender JID.
     pub from: Option<String>,
