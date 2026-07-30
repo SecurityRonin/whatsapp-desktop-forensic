@@ -1,6 +1,7 @@
-//! Analyzer findings over the real minted store (tier-2 oracle), plus one
-//! tier-3 synthetic record pinning that a zero `t` is never dated to 1970 (the
-//! rule is this crate's own specification, so no external oracle adjudicates it).
+//! Analyzer findings over the real minted store (tier-2 oracle), plus tier-3
+//! synthetic records pinning that an implausible `t` (zero, negative) is never
+//! dated in a finding (the rule is this crate's own specification, so no
+//! external oracle adjudicates it).
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
 use forensicnomicon_core::report::{Category, Finding, Severity};
@@ -52,52 +53,79 @@ fn flags_media_reference() {
     assert_eq!(media[0].severity, Some(Severity::Info));
 }
 
-#[test]
-fn a_deleted_message_with_a_zero_timestamp_is_not_dated_to_1970() {
-    // The `when` evidence on a recovered-deletion finding is the message's send
-    // time. A zero `t` is absent, so `when` must be empty — never the fabricated
-    // "1970-01-01T00:00:00Z" that reads as a real send time in a report.
-    let store = parse_records(&[
-        IndexedDbRecord {
-            database_id: 1,
-            object_store_id: 1,
-            database: Some("model-storage".to_string()),
-            object_store: Some("message".to_string()),
-            key: IdbKey::String("false_15551239999@c.us_ZEROTIME00000001".into()),
-            value: RecordValue::V8(V8Value::Object(vec![
-                (
-                    "id".to_string(),
-                    V8Value::String("false_15551239999@c.us_ZEROTIME00000001".to_string()),
-                ),
-                ("t".to_string(), V8Value::Int(0)),
+/// A `message` put carrying `t`, plus the deletion tombstone over it — so the
+/// parsed store reports exactly one recovered deleted message with that `t`.
+fn deleted_message_with_t(id: &str, t: V8Value) -> Vec<IndexedDbRecord> {
+    let record = |value: RecordValue, seq: u64, deleted: bool| IndexedDbRecord {
+        database_id: 1,
+        object_store_id: 1,
+        database: Some("model-storage".to_string()),
+        object_store: Some("message".to_string()),
+        key: IdbKey::String(id.into()),
+        value,
+        seq,
+        deleted,
+    };
+    vec![
+        record(
+            RecordValue::V8(V8Value::Object(vec![
+                ("id".to_string(), V8Value::String(id.to_string())),
+                ("t".to_string(), t),
             ])),
-            seq: 1,
-            deleted: false,
-        },
-        IndexedDbRecord {
-            database_id: 1,
-            object_store_id: 1,
-            database: Some("model-storage".to_string()),
-            object_store: Some("message".to_string()),
-            key: IdbKey::String("false_15551239999@c.us_ZEROTIME00000001".into()),
-            value: RecordValue::Undecoded {
+            1,
+            false,
+        ),
+        record(
+            RecordValue::Undecoded {
                 raw: vec![],
                 error: "deletion tombstone".to_string(),
             },
-            seq: 2,
-            deleted: true,
-        },
-    ]);
-    let findings = audit(&store);
+            2,
+            true,
+        ),
+    ]
+}
+
+/// The `when` evidence row of the single recovered-deletion finding.
+fn recovered_when(records: &[IndexedDbRecord]) -> String {
+    let findings = audit(&parse_records(records));
     let deleted = by_code(&findings, "WA-MSG-DELETED-RECOVERED");
     assert_eq!(deleted.len(), 1);
-    let when = deleted[0]
+    deleted[0]
         .evidence
         .iter()
         .find(|e| e.field == "when")
-        .expect("a `when` evidence row");
+        .expect("a `when` evidence row")
+        .value
+        .clone()
+}
+
+#[test]
+fn a_deleted_message_with_a_zero_timestamp_is_not_dated_to_1970() {
+    // The `when` evidence on a recovered-deletion finding is the message's send
+    // time. A zero `t` is absent, so `when` names the absence — never the
+    // fabricated "1970-01-01T00:00:00Z" that reads as a real send time in a report.
+    let when = recovered_when(&deleted_message_with_t(
+        "false_15550000001@c.us_ZEROTIME00000001",
+        V8Value::Int(0),
+    ));
     assert_eq!(
-        when.value, "",
+        when, "unknown",
         "a zero `t` is no send time — never rendered as 1970-01-01T00:00:00Z"
+    );
+}
+
+#[test]
+fn a_deleted_message_with_a_negative_timestamp_is_not_dated_before_1970() {
+    // A negative `t` is as implausible as the zero sentinel: WhatsApp did not
+    // exist before 2009, so a pre-1970 `when` in a deletion finding is fabricated
+    // evidence. The absence is named, never filled with a rendered epoch.
+    let when = recovered_when(&deleted_message_with_t(
+        "false_15550000002@c.us_NEGTIME000000001",
+        V8Value::Int(-1),
+    ));
+    assert_eq!(
+        when, "unknown",
+        "a negative `t` is no send time — never rendered as a pre-1970 date"
     );
 }

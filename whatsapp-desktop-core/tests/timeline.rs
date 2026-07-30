@@ -65,6 +65,27 @@ fn timeline_sorts_ascending_and_renders_time() {
 }
 
 #[test]
+fn an_implausible_timestamp_never_becomes_a_timeline_row() {
+    // Zero is not the only value that is no send time. A NEGATIVE `t` renders as a
+    // pre-1970 date, a pre-2009 `t` predates WhatsApp itself, and a millisecond
+    // value read as seconds lands tens of thousands of years out — each would sit
+    // on a forensic timeline as a fabricated event. Only a plausible time is datable.
+    let messages = vec![
+        msg("negative", Some(-1), "chat"),
+        msg("pre_whatsapp", Some(1_000_000_000), "chat"), // 2001-09-09
+        msg("millis_as_secs", Some(1_596_233_451_000), "chat"), // year 52560
+        msg("dated", Some(1_596_233_451), "chat"),
+    ];
+    let tl: Vec<TimelineEntry> = TimelineEntry::build_timeline(&messages);
+    assert_eq!(tl.len(), 1, "only the plausible send time is datable");
+    assert_eq!(tl[0].message_id, "dated");
+    assert!(
+        tl.iter().all(|e| !e.rfc3339.starts_with("19")),
+        "no pre-2000 row may enter a forensic timeline"
+    );
+}
+
+#[test]
 fn a_zero_timestamp_never_becomes_a_1970_timeline_row() {
     // The pure `epoch_secs_to_rfc3339(0) == "1970-01-01T00:00:00Z"` above is the
     // correct answer for the *conversion*. What must never happen is a message
