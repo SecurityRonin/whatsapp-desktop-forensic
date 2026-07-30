@@ -105,6 +105,13 @@ where
     let mut out = Vec::new();
     for group in groups.values() {
         let Some(latest) = group.iter().max_by_key(|r| r.seq) else {
+            // cov:unreachable: every entry in `groups` is created by
+            // `groups.entry(..).or_default().push(r)` above, which pushes before the
+            // entry is ever read, so no group is empty and `max_by_key` on a
+            // non-empty iterator always returns `Some`. Kept as a total-function
+            // guard: `Vec` non-emptiness is not expressible in the type here, so a
+            // future refactor that groups differently degrades to skipping the key
+            // rather than panicking.
             continue;
         };
         let deleted = latest.deleted;
