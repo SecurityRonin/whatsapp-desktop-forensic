@@ -593,7 +593,7 @@ dependencies = [
 
 [[package]]
 name = "whatsapp-desktop-core"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "aes",
  "blob-decoder",
@@ -608,7 +608,7 @@ dependencies = [
 
 [[package]]
 name = "whatsapp-desktop-forensic"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "forensicnomicon-core",
  "hex-literal",

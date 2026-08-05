@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2](https://github.com/SecurityRonin/whatsapp-desktop-forensic/compare/whatsapp-desktop-core-v0.1.1...whatsapp-desktop-core-v0.1.2) - 2026-08-05
+
+### Fixed
+
+- *(reader)* reject an implausible `t`; name an absent send time
+
 ## [0.1.1](https://github.com/SecurityRonin/whatsapp-desktop-forensic/compare/whatsapp-desktop-core-v0.1.0...whatsapp-desktop-core-v0.1.1) - 2026-07-30
 
 ### Fixed
