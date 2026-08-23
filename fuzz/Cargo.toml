@@ -17,7 +17,7 @@ arbitrary = { version = "1", features = ["derive"] }
 leveldb-core = "0.1"
 
 [dependencies.whatsapp-desktop-core]
-path = "../whatsapp-desktop-core"
+path = "../core"
 
 # Full pipeline: hostile LevelDB records -> IndexedDB/V8 decode -> every record
 # builder (message/chat/contact/media) + dedup/recovery + timeline.

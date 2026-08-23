@@ -59,8 +59,8 @@ third-party reader
 over the *same* minted store bytes. Two decoders authored by different people
 agreeing on real Chrome/V8 output is tier-1 evidence: the answer key is not ours.
 
-- **Test:** `whatsapp-desktop-core/tests/differential_ccl.rs`, driving the Python
-  oracle `whatsapp-desktop-core/tests/ccl_oracle.py`
+- **Test:** `core/tests/differential_ccl.rs`, driving the Python
+  oracle `core/tests/ccl_oracle.py`
   (`ccl_chromium_reader.ccl_chromium_indexeddb`).
 - **What is reconciled:** the full *live view* — each `(object_store, primary key,
   canonical value)` triple, where the canonical value is a deterministic,
