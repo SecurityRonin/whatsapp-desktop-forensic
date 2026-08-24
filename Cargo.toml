@@ -1,8 +1,8 @@
 [workspace]
 resolver = "2"
 members = [
-    "whatsapp-desktop-core",
-    "whatsapp-desktop-forensic",
+    "core",
+    "forensic",
 ]
 
 # Single source of truth for fields shared by every member (DRY): bump version /
