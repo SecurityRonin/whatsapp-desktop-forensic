@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3](https://github.com/SecurityRonin/whatsapp-desktop-forensic/compare/whatsapp-desktop-core-v0.1.2...whatsapp-desktop-core-v0.1.3) - 2026-08-24
+
+### Other
+
+- name the member directories for their role, not their crate ([#12](https://github.com/SecurityRonin/whatsapp-desktop-forensic/pull/12))
+
 ## [0.1.2](https://github.com/SecurityRonin/whatsapp-desktop-forensic/compare/whatsapp-desktop-core-v0.1.1...whatsapp-desktop-core-v0.1.2) - 2026-08-04
 
 ### Fixed
